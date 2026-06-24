@@ -13,6 +13,7 @@ export default function Home() {
 
   const hesapla = async () => {
     setLoading(true);
+    // Yolu güncelledik (api/optimize -> /api/optimize)
     const res = await fetch("/api/optimize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
