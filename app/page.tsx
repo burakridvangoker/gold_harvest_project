@@ -2,57 +2,60 @@
 "use client";
 import { useState } from "react";
 
-export default function ControlTower() {
-  // Fabrikadaki personel havuzu (Başlangıçta hepsi havuzda)
-  const [workers, setWorkers] = useState([
-    { id: 1, name: "Ahmet", station: "Havuz" },
-    { id: 2, name: "Mehmet", station: "Havuz" },
-    { id: 3, name: "Ayşe", station: "Havuz" },
-    { id: 4, name: "Fatma", station: "Havuz" },
-  ]);
+export default function FactoryMap() {
+  const [activeTab, setActiveTab] = useState("Merkez");
+  const [factories, setFactories] = useState({
+    Merkez: [
+      { id: "M1", name: "Kaju Hattı", status: "online", operator: "Ahmet" },
+      { id: "M2", name: "Çekirdek Fırını", status: "fault", operator: "Yok" },
+      { id: "M3", name: "Paketleme A", status: "online", operator: "Ayşe" },
+    ],
+    Sok: [
+      { id: "S1", name: "Badem Hattı", status: "online", operator: "Fatma" },
+      { id: "S2", name: "Otomatik Tartım", status: "online", operator: "Mehmet" },
+    ]
+  });
 
-  const stations = ["Kaju Hattı", "Çekirdek Hattı", "Badem Hattı", "Havuz"];
-
-  const moveWorker = (workerId, newStation) => {
-    setWorkers(workers.map(w => 
-      w.id === workerId ? { ...w, station: newStation } : w
-    ));
+  const handleIntervention = (factory, machineId) => {
+    // Burada basit bir "Müdahale" mantığı kurgulayacağız.
+    alert(`Müdahale: ${machineId} numaralı makineye yönlendiriliyorsunuz.`);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
-      <h1 className="text-2xl font-bold mb-8 border-b border-slate-800 pb-4">Kontrol Kulesi - Dinamik Görevlendirme</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {stations.map(station => (
-          <div key={station} className="bg-slate-900 border border-slate-800 rounded-xl p-4 min-h-[400px]">
-            <h3 className="font-bold text-amber-500 mb-4 uppercase text-sm tracking-wider">{station}</h3>
-            
-            <div className="space-y-3">
-              {workers.filter(w => w.station === station).map(worker => (
-                <div key={worker.id} className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-sm flex flex-col gap-2">
-                  <span className="font-semibold">{worker.name}</span>
-                  
-                  {/* Görevlendirme Butonları */}
-                  <div className="grid grid-cols-2 gap-1 mt-2">
-                    {stations.map(s => (
-                      <button 
-                        key={s}
-                        onClick={() => moveWorker(worker.id, s)}
-                        className={`text-[10px] py-1 px-1 rounded transition-colors ${
-                          station === s ? 'bg-slate-600 cursor-default' : 'bg-amber-600 hover:bg-amber-500 text-white'
-                        }`}
-                        disabled={station === s}
-                      >
-                        {s.split(' ')[0]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+    <div className="min-h-screen bg-slate-950 text-white p-6">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+           Fabrika Haritası <span className="text-slate-500 text-sm font-normal">| Kontrol Kulesi</span>
+        </h1>
+
+        {/* Tab Sistemi */}
+        <div className="flex gap-4 mb-6">
+          {["Merkez", "Sok"].map((f) => (
+            <button key={f} onClick={() => setActiveTab(f)} className={`px-6 py-2 rounded-lg font-bold ${activeTab === f ? 'bg-amber-600' : 'bg-slate-800'}`}>
+              {f} Fabrika
+            </button>
+          ))}
+        </div>
+
+        {/* Harita / Grid Görünümü */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {factories[activeTab].map((m) => (
+            <div key={m.id} className={`p-4 rounded-xl border-2 ${m.status === 'fault' ? 'border-red-500 bg-red-950/20' : 'border-slate-800 bg-slate-900'}`}>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="font-bold text-lg">{m.name}</h3>
+                <span className={`text-xs px-2 py-1 rounded ${m.status === 'fault' ? 'bg-red-500' : 'bg-green-500'}`}>{m.status}</span>
+              </div>
+              <p className="text-slate-400 text-sm mb-4">Operatör: <span className="text-white font-mono">{m.operator}</span></p>
+              
+              <button 
+                onClick={() => handleIntervention(activeTab, m.id)}
+                className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition"
+              >
+                Müdahale Et
+              </button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
