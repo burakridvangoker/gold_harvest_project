@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
-import pulp
+import math
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -8,31 +8,62 @@ class handler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
 
-        toplam_isci = int(data.get('toplam_isci', 50))
-        merkez_hedef = int(data.get('merkez_hedef', 20))
-        sok_hedef = int(data.get('sok_hedef', 15))
+        # Gelen Siparişler (Palet bazında)
+        kaju_siparis = int(data.get('kaju', 50))
+        cekirdek_siparis = int(data.get('cekirdek', 100))
+        badem_siparis = int(data.get('badem', 30))
+        toplam_isci = int(data.get('isci', 40))
 
-        kapasite_merkez = 0.6
-        kapasite_sok = 0.8
+        # Sabit Makine Hızları (Saatte basılan palet sayısı)
+        hiz_kaju = 10
+        hiz_cekirdek = 15
+        hiz_badem = 5
 
-        model = pulp.LpProblem("Isgucu", pulp.LpMinimize)
-        isci_merkez = pulp.LpVariable('Isci_Merkez', lowBound=0, cat='Integer')
-        isci_sok = pulp.LpVariable('Isci_Sok', lowBound=0, cat='Integer')
-        bosta_kalan = pulp.LpVariable('Bosta_Kalan', lowBound=0, cat='Integer')
-        ekstra_mesai = pulp.LpVariable('Ekstra_Mesai', lowBound=0, cat='Integer')
+        # Süre Hesaplamaları (Saat)
+        sure_kaju = math.ceil(kaju_siparis / hiz_kaju)
+        sure_cekirdek = math.ceil(cekirdek_siparis / hiz_cekirdek)
+        sure_badem = math.ceil(badem_siparis / hiz_badem)
 
-        model += (100 * bosta_kalan) + (150 * ekstra_mesai)
-        model += isci_merkez * kapasite_merkez >= merkez_hedef
-        model += isci_sok * kapasite_sok >= sok_hedef
-        model += isci_merkez + isci_sok + bosta_kalan - ekstra_mesai == toplam_isci
+        toplam_is_yuku = sure_kaju + sure_cekirdek + sure_badem
+        
+        # Basit Dinamik Atama Simülasyonu
+        # Mesai başlangıcı 08:00
+        zaman_cizelgesi = []
+        
+        if kaju_siparis > 0:
+            zaman_cizelgesi.append({
+                "saat": f"08:00 - {08 + sure_kaju:02d}:00",
+                "olay": f"Kaju Hattı Çalışıyor ({kaju_siparis} Palet)",
+                "durum": "aktif"
+            })
+        
+        if cekirdek_siparis > 0:
+            bitis_cekirdek = 8 + sure_kaju + sure_cekirdek
+            zaman_cizelgesi.append({
+                "saat": f"{08 + sure_kaju:02d}:00 - {bitis_cekirdek:02d}:00",
+                "olay": "Kaju ekibi Çekirdek Hattına kaydırıldı.",
+                "durum": "transfer"
+            })
+            
+        if badem_siparis > 0:
+            bitis_badem = bitis_cekirdek + sure_badem
+            zaman_cizelgesi.append({
+                "saat": f"{bitis_cekirdek:02d}:00 - {bitis_badem:02d}:00",
+                "olay": "Tüm ekipler Badem Paketlemeye geçti.",
+                "durum": "kapanis"
+            })
 
-        model.solve()
+        # Toplam saat 8 saati (16:00'ı) geçiyorsa mesai uyarısı ver
+        toplam_saat = bitis_badem - 8
+        ekstra_mesai = max(0, toplam_saat - 8)
 
         res = {
-            "isci_merkez": int(isci_merkez.varValue),
-            "isci_sok": int(isci_sok.varValue),
-            "bosta_kalan": int(bosta_kalan.varValue),
-            "ekstra_mesai": int(ekstra_mesai.varValue)
+            "toplam_saat": toplam_saat,
+            "mesai_saati": ekstra_mesai,
+            "cizelge": zaman_cizelgesi,
+            "kaju_sure": sure_kaju,
+            "cekirdek_sure": sure_cekirdek,
+            "badem_sure": sure_badem
         }
 
         self.send_response(200)

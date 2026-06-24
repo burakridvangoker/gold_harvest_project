@@ -3,18 +3,20 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [isci, setIsci] = useState(50);
-  const [merkez, setMerkez] = useState(20);
-  const [sok, setSok] = useState(15);
+  const [kaju, setKaju] = useState(50);
+  const [cekirdek, setCekirdek] = useState(100);
+  const [badem, setBadem] = useState(30);
+  const [isci, setIsci] = useState(40);
+  
   const [sonuc, setSonuc] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const optimizeEt = async () => {
+  const hesapla = async () => {
     setLoading(true);
     const res = await fetch("/api/optimize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ toplam_isci: isci, merkez_hedef: merkez, sok_hedef: sok })
+      body: JSON.stringify({ kaju, cekirdek, badem, isci })
     });
     const data = await res.json();
     setSonuc(data);
@@ -22,67 +24,132 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-amber-500 border-b border-gray-800 pb-4">Gold Harvest YZ Çizelgeleme Ekranı</h1>
+    <div className="min-h-screen bg-[#0a0f1a] text-slate-300 p-4 md:p-8 font-sans selection:bg-amber-500/30">
+      <div className="max-w-6xl mx-auto space-y-6">
+        
+        {/* Üst Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6">
+          <div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">Üretim Kontrol Merkezi</h1>
+            <p className="text-slate-500 mt-1">Dinamik Kaynak ve İş Emri Yönlendirme Sistemi (v2.0)</p>
+          </div>
+          <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-slate-900 px-4 py-2 rounded-lg border border-slate-800">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="text-sm font-medium text-slate-400">Sistem Aktif</span>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-xl">
-            <h2 className="text-2xl font-semibold mb-6">Saha Parametreleri</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Sol Panel: Sipariş Girişleri */}
+          <div className="lg:col-span-1 bg-slate-900/50 backdrop-blur-xl p-6 rounded-2xl border border-slate-800 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white mb-6 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+              İş Emirleri (Günlük)
+            </h2>
+            
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Mevcut Dinamik İşçi Havuzu ({isci} Kişi)</label>
-                <input type="range" min="20" max="80" value={isci} onChange={(e)=>setIsci(Number(e.target.value))} className="w-full accent-amber-500" />
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label className="text-sm font-medium text-slate-400">Kaju Siparişi</label>
+                  <span className="text-sm font-bold text-amber-500">{kaju} Palet</span>
+                </div>
+                <input type="range" min="0" max="200" value={kaju} onChange={(e)=>setKaju(Number(e.target.value))} className="w-full accent-amber-500" />
               </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Merkez Fabrika Hedefi ({merkez} Ton)</label>
-                <input type="range" min="10" max="50" value={merkez} onChange={(e)=>setMerkez(Number(e.target.value))} className="w-full accent-amber-500" />
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label className="text-sm font-medium text-slate-400">Çekirdek Siparişi</label>
+                  <span className="text-sm font-bold text-amber-500">{cekirdek} Palet</span>
+                </div>
+                <input type="range" min="0" max="300" value={cekirdek} onChange={(e)=>setCekirdek(Number(e.target.value))} className="w-full accent-amber-500" />
               </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">ŞOK Fabrika Hedefi ({sok} Ton)</label>
-                <input type="range" min="5" max="30" value={sok} onChange={(e)=>setSok(Number(e.target.value))} className="w-full accent-amber-500" />
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label className="text-sm font-medium text-slate-400">Badem Siparişi</label>
+                  <span className="text-sm font-bold text-amber-500">{badem} Palet</span>
+                </div>
+                <input type="range" min="0" max="150" value={badem} onChange={(e)=>setBadem(Number(e.target.value))} className="w-full accent-amber-500" />
               </div>
-              <button onClick={optimizeEt} disabled={loading} className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(217,119,6,0.4)]">
-                {loading ? "Hesaplanıyor..." : "🚀 Yapay Zeka Atamasını Ateşle"}
+
+              <div className="space-y-2 pt-4 border-t border-slate-800">
+                <div className="flex justify-between">
+                  <label className="text-sm font-medium text-slate-400">Sahadaki Mevcut Operatör</label>
+                  <span className="text-sm font-bold text-white">{isci} Kişi</span>
+                </div>
+                <input type="range" min="10" max="100" value={isci} onChange={(e)=>setIsci(Number(e.target.value))} className="w-full accent-slate-500" />
+              </div>
+
+              <button 
+                onClick={hesapla} 
+                disabled={loading} 
+                className="w-full mt-4 py-3.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] disabled:opacity-50"
+              >
+                {loading ? "Sistem Çözümleniyor..." : "Üretim Planını Oluştur"}
               </button>
             </div>
           </div>
 
-          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-xl">
-            <h2 className="text-2xl font-semibold mb-6">Sistem Önerisi</h2>
-            {!sonuc ? (
-              <div className="text-gray-500 flex items-center justify-center h-48 border-2 border-dashed border-gray-800 rounded-lg">Optimizasyon bekleniyor...</div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg">
-                  <span className="text-gray-300">🏢 Merkez Fabrika (Tahsis)</span>
-                  <span className="text-2xl font-bold text-amber-500">{sonuc.isci_merkez} Kişi</span>
-                </div>
-                <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg">
-                  <span className="text-gray-300">🏪 ŞOK Fabrika (Tahsis)</span>
-                  <span className="text-2xl font-bold text-amber-500">{sonuc.isci_sok} Kişi</span>
-                </div>
-                
-                {sonuc.bosta_kalan > 0 && (
-                  <div className="bg-red-950/50 border border-red-500 p-4 rounded-lg mt-4">
-                    <span className="text-red-400 font-bold block mb-1">⚠️ Atıl Kapasite (İsraf Riski)</span>
-                    <span className="text-gray-300 text-sm">{sonuc.bosta_kalan} Kişi boşta. Parkinson Kanunu devreye girmemesi için bu kişileri ŞOK fabrikasına üzüm ezmeye göndermeyin!</span>
-                  </div>
-                )}
-                {sonuc.ekstra_mesai > 0 && (
-                  <div className="bg-orange-950/50 border border-orange-500 p-4 rounded-lg mt-4">
-                    <span className="text-orange-400 font-bold block mb-1">🚨 Darboğaz Tespiti</span>
-                    <span className="text-gray-300 text-sm">Üretim hedeflerini yakalamak için {sonuc.ekstra_mesai} kişilik fazla mesai veya ek işçi gerekmektedir.</span>
-                  </div>
-                )}
-                {sonuc.bosta_kalan === 0 && sonuc.ekstra_mesai === 0 && (
-                  <div className="bg-green-950/50 border border-green-500 p-4 rounded-lg mt-4">
-                    <span className="text-green-400 font-bold block mb-1">🎯 Kusursuz Operasyonel Denge</span>
-                    <span className="text-gray-300 text-sm">İşgücü siparişlere milimetrik olarak dağıtıldı. Maliyet artışı veya israf yok.</span>
-                  </div>
-                )}
+          {/* Sağ Panel: Operasyonel Sonuçlar ve Gantt/Timeline */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* KPI Kartları */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Toplam Operasyon Süresi</p>
+                <p className="text-3xl font-light text-white">{sonuc ? sonuc.toplam_saat : "--"} <span className="text-base text-slate-500">Saat</span></p>
               </div>
-            )}
+              <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Tahmini Bitiş</p>
+                <p className="text-3xl font-light text-white">{sonuc ? `${(8 + sonuc.toplam_saat).toString().padStart(2, '0')}:00` : "--:--"}</p>
+              </div>
+              <div className={`p-5 rounded-xl border ${sonuc && sonuc.mesai_saati > 0 ? 'bg-red-950/20 border-red-900/50' : 'bg-slate-900 border-slate-800'}`}>
+                <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Ekstra Mesai İhtiyacı</p>
+                <p className={`text-3xl font-light ${sonuc && sonuc.mesai_saati > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                  {sonuc ? sonuc.mesai_saati : "--"} <span className="text-base">Saat</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Dinamik Zaman Çizelgesi (Timeline) */}
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-xl min-h-[300px]">
+              <h2 className="text-lg font-semibold text-white mb-6">Operatör Yönlendirme Çizelgesi</h2>
+              
+              {!sonuc ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-3 pt-10">
+                  <svg className="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  <p>Siparişleri girin ve üretim planını oluşturun.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-700 before:to-transparent">
+                  {sonuc.cizelge.map((adim, index) => (
+                    <div key={index} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-slate-900 bg-amber-500 text-black shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-slate-800 bg-slate-800/50 shadow-md">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-mono text-sm text-amber-500 font-medium">{adim.saat}</span>
+                        </div>
+                        <div className="text-slate-300">{adim.olay}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {sonuc && sonuc.mesai_saati > 0 && (
+                <div className="mt-8 p-4 bg-red-950/40 border border-red-900/50 rounded-xl flex items-start space-x-3">
+                  <span className="text-red-500 text-xl">⚠️</span>
+                  <div>
+                    <h4 className="text-red-400 font-semibold">Kritik Uyarı: Kapasite Aşımı</h4>
+                    <p className="text-sm text-slate-400 mt-1">Siparişleri mevcut kadro ile tamamlamak için {sonuc.mesai_saati} saatlik fazla mesai veya ekstra {Math.ceil(sonuc.mesai_saati * 2)} yevmiyeli işçi desteği gerekmektedir.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
           </div>
         </div>
       </div>
