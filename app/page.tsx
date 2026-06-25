@@ -1,32 +1,52 @@
-/* eslint-disable */
-// @ts-nocheck
 "use client";
 import { useState } from "react";
 
+// --- TİP TANIMLAMALARI (VERCEL'İN HATA VERMEMESİ İÇİN ZORUNLU) ---
+interface Task {
+  id: string;
+  startHour: number;
+  duration: number;
+  order: string;
+  workers: string;
+  type: string;
+}
+
+interface ScheduleRow {
+  facility: string;
+  id: string;
+  name: string;
+  tasks: Task[];
+}
+
+interface NotificationState {
+  message: string;
+  type: string;
+}
+
 export default function GoldHarvestFinalVercel() {
-  const [activeFacility, setActiveFacility] = useState("MERKEZ");
-  const [globalPool, setGlobalPool] = useState([]);
-  const [notification, setNotification] = useState(null);
-  const [showHRModal, setShowHRModal] = useState(false);
-  const [simState, setSimState] = useState("normal"); 
+  const [activeFacility, setActiveFacility] = useState<string>("MERKEZ");
+  const [globalPool, setGlobalPool] = useState<string[]>([]);
+  const [notification, setNotification] = useState<NotificationState | null>(null);
+  const [showHRModal, setShowHRModal] = useState<boolean>(false);
+  const [simState, setSimState] = useState<string>("normal"); 
 
-  const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
-  const totalHours = 168; 
-  const hourWidth = 145; 
+  const days: string[] = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+  const totalHours: number = 168; 
+  const hourWidth: number = 145; 
 
-  const getClock = (index) => {
+  const getClock = (index: number): string => {
     const h = (index + 7) % 24;
     return `${h.toString().padStart(2, '0')}:00`;
   };
 
-  const showNotification = (message, type = "success") => {
+  const showNotification = (message: string, type: string = "success"): void => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 5000);
   };
 
   // --- ZENGİN VERİ ÜRETİCİSİ ---
-  const generateShifts = (pattern) => {
-    let tasks = [];
+  const generateShifts = (pattern: string): Task[] => {
+    let tasks: Task[] = [];
     for (let d = 0; d < 7; d++) {
       const dayOffset = d * 24;
       const isWeekend = d >= 5; 
@@ -60,7 +80,7 @@ export default function GoldHarvestFinalVercel() {
     return tasks;
   };
 
-  const getTaskStyle = (type) => {
+  const getTaskStyle = (type: string): string => {
     switch(type) {
       case "standard": return "bg-white border-slate-200 border-l-4 border-l-indigo-500 text-slate-700 shadow-sm";
       case "export": return "bg-indigo-50 border-indigo-200 border-l-4 border-l-blue-600 text-indigo-800 shadow-sm";
@@ -77,7 +97,7 @@ export default function GoldHarvestFinalVercel() {
     }
   };
 
-  const [scheduleData, setScheduleData] = useState([
+  const [scheduleData, setScheduleData] = useState<ScheduleRow[]>([
     { facility: "MERKEZ", id: "M-P-1", name: "Paketleme Hattı 1", tasks: generateShifts("merkez-paketleme-1") },
     { facility: "MERKEZ", id: "M-P-2", name: "Paketleme Hattı 2", tasks: generateShifts("merkez-paketleme-2") },
     { facility: "MERKEZ", id: "M-K-1", name: "Kavurma İstasyonu", tasks: generateShifts("merkez-kavurma") },
@@ -87,24 +107,24 @@ export default function GoldHarvestFinalVercel() {
     { facility: "ŞOK", id: "S-P-1", name: "Aktüel Paketleme", tasks: generateShifts("sok-paketleme") },
   ]);
 
-  // --- KOMPLEKS FABRİKA KRİZİ (3 FARKLI SENARYO AYNI ANDA) ---
-  const triggerCrisis = () => {
+  // --- KOMPLEKS FABRİKA KRİZİ ---
+  const triggerCrisis = (): void => {
     setSimState("crisis");
     
     setGlobalPool(["Opt-11 (Fırın)", "Bes-11", "Usta-2 (Aroma)", "Bes-14", "Opt-8 (Kavurma)", "Bes-8"]);
     
-    setScheduleData(prev => prev.map(row => {
+    setScheduleData((prev: ScheduleRow[]) => prev.map((row: ScheduleRow) => {
       if (row.id === "S-C-1") {
-        return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "🔥 MOTOR YANDI", workers: "HAT DURDU", type: "error" } : t) };
+        return { ...row, tasks: row.tasks.map((t: Task) => t.startHour === 8 ? { ...t, order: "🔥 MOTOR YANDI", workers: "HAT DURDU", type: "error" } : t) };
       }
       if (row.id === "S-A-1") {
-        return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚠️ MAL BEKLİYOR", workers: "PERSONEL HAVUZDA", type: "starvation" } : t) };
+        return { ...row, tasks: row.tasks.map((t: Task) => t.startHour === 8 ? { ...t, order: "⚠️ MAL BEKLİYOR", workers: "PERSONEL HAVUZDA", type: "starvation" } : t) };
       }
       if (row.id === "M-P-1") {
-        return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚠️ EKSİK PERSONEL", workers: "Bes-2, Pak-3 (Opt-2 YOK)", type: "warning" } : t) };
+        return { ...row, tasks: row.tasks.map((t: Task) => t.startHour === 8 ? { ...t, order: "⚠️ EKSİK PERSONEL", workers: "Bes-2, Pak-3 (Opt-2 YOK)", type: "warning" } : t) };
       }
       if (row.id === "M-K-1") {
-        return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "✅ SİPARİŞ ERKEN BİTTİ", workers: "PERSONEL HAVUZDA", type: "success" } : t) };
+        return { ...row, tasks: row.tasks.map((t: Task) => t.startHour === 8 ? { ...t, order: "✅ SİPARİŞ ERKEN BİTTİ", workers: "PERSONEL HAVUZDA", type: "success" } : t) };
       }
       return row;
     }));
@@ -112,19 +132,19 @@ export default function GoldHarvestFinalVercel() {
     showNotification("🚨 SİSTEM ALARMI: 3 Farklı Olay Tespit Edildi! (Arıza, Devamsızlık, Erken Tamamlanma). 6 Personel Havuzda.", "error");
   };
 
-  // --- AI CROSS-ROUTING (AKILLI DAĞITIM) ---
-  const triggerOptimization = () => {
+  // --- AI CROSS-ROUTING ---
+  const triggerOptimization = (): void => {
     if (simState !== "crisis") return showNotification("Sistem şu an optimum. Atanacak kriz yok.", "info");
 
     setSimState("resolved");
     setGlobalPool([]); 
 
-    setScheduleData(prev => prev.map(row => {
+    setScheduleData((prev: ScheduleRow[]) => prev.map((row: ScheduleRow) => {
       if (row.id === "M-P-1") {
-        return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚡ EKSİK GİDERİLDİ", workers: "Bes-2, Pak-3 + [Opt-8]", type: "resolved" } : t) };
+        return { ...row, tasks: row.tasks.map((t: Task) => t.startHour === 8 ? { ...t, order: "⚡ EKSİK GİDERİLDİ", workers: "Bes-2, Pak-3 + [Opt-8]", type: "resolved" } : t) };
       }
       if (row.id === "S-P-1") {
-        return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚡ TURBO AKTÜEL", workers: "Opt-9, Pak-16 + [Kalan 5 Kişi]", type: "resolved" } : t) };
+        return { ...row, tasks: row.tasks.map((t: Task) => t.startHour === 8 ? { ...t, order: "⚡ TURBO AKTÜEL", workers: "Opt-9, Pak-16 + [Kalan 5 Kişi]", type: "resolved" } : t) };
       }
       return row;
     }));
@@ -132,7 +152,7 @@ export default function GoldHarvestFinalVercel() {
     showNotification("✅ AI OPTİMİZASYONU: Havuzdaki personeller tesisler arası (Cross-Routing) dağıtılarak tüm darboğazlar çözüldü!");
   };
 
-  const filteredData = scheduleData.filter(d => d.facility === activeFacility);
+  const filteredData: ScheduleRow[] = scheduleData.filter((d: ScheduleRow) => d.facility === activeFacility);
 
   return (
     <div className="h-screen bg-[#f4f7fb] text-slate-800 font-sans flex flex-col overflow-hidden selection:bg-indigo-200 relative">
@@ -162,7 +182,7 @@ export default function GoldHarvestFinalVercel() {
           </div>
 
           <div className="flex bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 shadow-inner">
-            {["MERKEZ", "ŞOK"].map(fac => (
+            {["MERKEZ", "ŞOK"].map((fac: string) => (
               <button 
                 key={fac} onClick={() => setActiveFacility(fac)}
                 className={`px-8 py-2 rounded-lg font-black text-xs transition-all duration-300 ${activeFacility === fac ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}`}
@@ -180,7 +200,7 @@ export default function GoldHarvestFinalVercel() {
             {globalPool.length === 0 ? (
               <span className="text-[11px] text-slate-500 font-bold italic">Sistem optimum kapasitede. Müdahale gerekmiyor.</span>
             ) : (
-              globalPool.map((w, i) => (
+              globalPool.map((w: string, i: number) => (
                 <span key={i} className="bg-white border border-amber-300 text-amber-800 px-3 py-1 rounded-md text-[11px] font-black flex items-center gap-2 shadow-sm animate-in fade-in zoom-in duration-300">
                   <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> {w}
                 </span>
@@ -199,14 +219,14 @@ export default function GoldHarvestFinalVercel() {
             </div>
             <div className="flex flex-col">
               <div className="flex border-b border-slate-100">
-                {days.map(day => (
+                {days.map((day: string) => (
                   <div key={day} className="flex-shrink-0 bg-white font-black text-xs text-slate-800 tracking-widest uppercase py-3 text-center border-r border-slate-100" style={{ width: `${24 * hourWidth}px` }}>
                     {day}
                   </div>
                 ))}
               </div>
               <div className="flex relative" style={{ width: `${totalHours * hourWidth}px` }}>
-                {Array.from({ length: totalHours }).map((_, i) => (
+                {Array.from({ length: totalHours }).map((_: unknown, i: number) => (
                   <div key={i} className="w-[145px] flex-shrink-0 border-r border-slate-100 p-2 flex flex-col justify-center bg-slate-50/50">
                     <span className="text-[10px] font-black text-slate-400">{getClock(i)}</span>
                   </div>
@@ -216,7 +236,7 @@ export default function GoldHarvestFinalVercel() {
           </div>
 
           <div className="flex-1 pb-32 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed opacity-95">
-            {filteredData.map((row) => (
+            {filteredData.map((row: ScheduleRow) => (
               <div key={row.id} className="flex border-b border-slate-200/60 hover:bg-white/50 transition-colors group">
                 <div className="w-72 flex-shrink-0 border-r border-slate-200 bg-white p-5 sticky left-0 z-20 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.02)] flex flex-col justify-center">
                   <span className="font-black text-slate-900 text-sm tracking-tight">{row.id}</span>
@@ -224,11 +244,11 @@ export default function GoldHarvestFinalVercel() {
                 </div>
                 <div className="relative flex-shrink-0" style={{ width: `${totalHours * hourWidth}px`, height: '88px' }}>
                   <div className="absolute inset-0 flex pointer-events-none">
-                    {Array.from({ length: totalHours }).map((_, i) => (
+                    {Array.from({ length: totalHours }).map((_: unknown, i: number) => (
                       <div key={i} className={`w-[145px] border-r h-full ${i % 24 === 23 ? 'border-slate-300/80 bg-slate-200/20' : 'border-slate-100/50'}`}></div>
                     ))}
                   </div>
-                  {row.tasks.map((task) => (
+                  {row.tasks.map((task: Task) => (
                     <div 
                       key={task.id} 
                       className={`absolute top-2.5 bottom-2.5 rounded-lg p-2.5 flex flex-col justify-between overflow-hidden transition-all duration-500 cursor-default ${getTaskStyle(task.type)}`}
