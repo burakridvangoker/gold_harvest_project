@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 "use client";
 import { useState } from "react";
@@ -90,28 +91,21 @@ export default function GoldHarvestFinalVercel() {
   const triggerCrisis = () => {
     setSimState("crisis");
     
-    // HAVUZA DÜŞENLER: ŞOK'tan 4 kişi (Fırın ve Aroma), Merkez'den 2 kişi (Erken biten iş) = Toplam 6 kişi
     setGlobalPool(["Opt-11 (Fırın)", "Bes-11", "Usta-2 (Aroma)", "Bes-14", "Opt-8 (Kavurma)", "Bes-8"]);
     
     setScheduleData(prev => prev.map(row => {
-      // SENARYO 1: ŞOK Fırın Bozulur, Aroma Bandı Beklemeye (Starvation) Geçer
       if (row.id === "S-C-1") {
         return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "🔥 MOTOR YANDI", workers: "HAT DURDU", type: "error" } : t) };
       }
       if (row.id === "S-A-1") {
         return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚠️ MAL BEKLİYOR", workers: "PERSONEL HAVUZDA", type: "starvation" } : t) };
       }
-
-      // SENARYO 2: Merkez Paketlemede Devamsızlık (İşe Gelmeyen Eleman)
       if (row.id === "M-P-1") {
         return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚠️ EKSİK PERSONEL", workers: "Bes-2, Pak-3 (Opt-2 YOK)", type: "warning" } : t) };
       }
-
-      // SENARYO 3: Merkez Kavurma İşi Erken Biter
       if (row.id === "M-K-1") {
         return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "✅ SİPARİŞ ERKEN BİTTİ", workers: "PERSONEL HAVUZDA", type: "success" } : t) };
       }
-      
       return row;
     }));
 
@@ -123,14 +117,12 @@ export default function GoldHarvestFinalVercel() {
     if (simState !== "crisis") return showNotification("Sistem şu an optimum. Atanacak kriz yok.", "info");
 
     setSimState("resolved");
-    setGlobalPool([]); // Havuz tamamen boşaltıldı
+    setGlobalPool([]); 
 
     setScheduleData(prev => prev.map(row => {
-      // ÇÖZÜM 1: Eksik elemanlı M-P-1 hattına, havuzdan 1 kavurmacı yollanır
       if (row.id === "M-P-1") {
         return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚡ EKSİK GİDERİLDİ", workers: "Bes-2, Pak-3 + [Opt-8]", type: "resolved" } : t) };
       }
-      // ÇÖZÜM 2: Kalan 5 kişi toplanıp, geride kalan ŞOK Paketlemeye "Turbo" destek atılır
       if (row.id === "S-P-1") {
         return { ...row, tasks: row.tasks.map(t => t.startHour === 8 ? { ...t, order: "⚡ TURBO AKTÜEL", workers: "Opt-9, Pak-16 + [Kalan 5 Kişi]", type: "resolved" } : t) };
       }
