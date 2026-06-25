@@ -1,6 +1,6 @@
 // @ts-nocheck
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 export default function GoldHarvestFinalVercel() {
   const [activeFacility, setActiveFacility] = useState("MERKEZ");
